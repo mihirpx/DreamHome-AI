@@ -4,3 +4,5 @@ diffusers
 transformers
 accelerate
 safetensors
+Pillow
+numpy
