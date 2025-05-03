@@ -1,29 +1,29 @@
 import streamlit as st
-from diffusers import StableDiffusionPipeline
-import torch
 from PIL import Image
+from diffusers.pipelines.stable_diffusion import StableDiffusionPipeline  # updated import
+import torch
 
-# Title
-st.title("DreamHome AI - Text to Floor Plan Generator")
+# Optional debug check
+st.write("CUDA available:", torch.cuda.is_available())
 
-# Load model once
+# Load the Stable Diffusion model
 @st.cache_resource
 def load_model():
     model = StableDiffusionPipeline.from_pretrained(
-        "runwayml/stable-diffusion-v1-5",
-        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32,
-    )
-    if torch.cuda.is_available():
-        model = model.to("cuda")
+        "CompVis/stable-diffusion-v1-4",
+        torch_dtype=torch.float16,
+        revision="fp16"
+    ).to("cuda" if torch.cuda.is_available() else "cpu")
     return model
 
 pipe = load_model()
 
-# Prompt input
-prompt = st.text_input("Enter your prompt (e.g., modern 2-bedroom house plan):")
+# Streamlit UI
+st.title("DreamHome AI")
+prompt = st.text_input("Enter your home design prompt:")
 
-# Generate on click
-if st.button("Generate Floor Plan") and prompt:
-    with st.spinner("Generating..."):
-        image = pipe(prompt).images[0]
-        st.image(image, caption="Generated Floor Plan", use_column_width=True)
+if st.button("Generate"):
+    if prompt:
+        with st.spinner("Generating image..."):
+            image = pipe(prompt).images[0]
+            st.image(image, caption="Generated Design", use_column_width=True)
