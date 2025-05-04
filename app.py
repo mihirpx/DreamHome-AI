@@ -2,23 +2,22 @@
 import streamlit as st
 from diffusers import StableDiffusionPipeline
 import torch
+from PIL import Image
+
+st.set_page_config(page_title="DreamHome AI", layout="centered")
 
 @st.cache_resource
-def load_model():
-    pipe = StableDiffusionPipeline.from_pretrained(
-        "CompVis/stable-diffusion-v1-4",
-        torch_dtype=torch.float16
-    ).to("cuda")
+def load_pipeline():
+    pipe = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", torch_dtype=torch.float16)
+    pipe = pipe.to("cuda" if torch.cuda.is_available() else "cpu")
     return pipe
 
-st.title("DreamHome AI - Generate House Designs")
-prompt = st.text_input("Enter prompt (e.g., 2BHK floor plan, modern house)")
+pipe = load_pipeline()
 
-if st.button("Generate"):
-    if prompt:
-        pipe = load_model()
-        with st.spinner("Generating..."):
-            image = pipe(prompt).images[0]
-        st.image(image, caption="Generated Design", use_column_width=True)
-    else:
-        st.warning("Please enter a prompt.")
+st.title("🏡 DreamHome AI - Floorplan and Design Generator")
+prompt = st.text_input("Enter a prompt (e.g. 'Floor plan for a 2BHK modern house')")
+
+if st.button("Generate Image") and prompt:
+    with st.spinner("Generating..."):
+        result = pipe(prompt).images[0]
+        st.image(result, caption="Generated Image", use_column_width=True)
