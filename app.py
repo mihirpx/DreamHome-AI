@@ -1,29 +1,24 @@
+# app.py
 import streamlit as st
-from PIL import Image
-from diffusers.pipelines.stable_diffusion import StableDiffusionPipeline  # updated import
+from diffusers import StableDiffusionPipeline
 import torch
 
-# Optional debug check
-st.write("CUDA available:", torch.cuda.is_available())
-
-# Load the Stable Diffusion model
 @st.cache_resource
 def load_model():
-    model = StableDiffusionPipeline.from_pretrained(
+    pipe = StableDiffusionPipeline.from_pretrained(
         "CompVis/stable-diffusion-v1-4",
-        torch_dtype=torch.float16,
-        revision="fp16"
-    ).to("cuda" if torch.cuda.is_available() else "cpu")
-    return model
+        torch_dtype=torch.float16
+    ).to("cuda")
+    return pipe
 
-pipe = load_model()
-
-# Streamlit UI
-st.title("DreamHome AI")
-prompt = st.text_input("Enter your home design prompt:")
+st.title("DreamHome AI - Generate House Designs")
+prompt = st.text_input("Enter prompt (e.g., 2BHK floor plan, modern house)")
 
 if st.button("Generate"):
     if prompt:
-        with st.spinner("Generating image..."):
+        pipe = load_model()
+        with st.spinner("Generating..."):
             image = pipe(prompt).images[0]
-            st.image(image, caption="Generated Design", use_column_width=True)
+        st.image(image, caption="Generated Design", use_column_width=True)
+    else:
+        st.warning("Please enter a prompt.")
